@@ -234,12 +234,18 @@ def copy_raw_datasets():
 def prepare_balanced_dataset():
     print("Building unified, balanced dataset...")
     
-    # Load Benign
+    # Load Benign (1500 Enron ham + 1500 SMS ham)
     enron_path = RAW_DIR / "enron_ham.csv"
-    if enron_path.exists():
-        df_benign = pd.read_csv(enron_path).head(3000)
+    sms_path = RAW_DIR / "sms_spam.csv"
+    
+    if enron_path.exists() and sms_path.exists():
+        df_enron = pd.read_csv(enron_path).head(1500)
+        df_sms_raw = pd.read_csv(sms_path)
+        df_sms = df_sms_raw[df_sms_raw["spamORham"] == "ham"].rename(columns={"Message": "text"}).head(1500)
+        df_sms["label"] = "benign"
+        df_benign = pd.concat([df_enron, df_sms], ignore_index=True)
     else:
-        raise FileNotFoundError("enron_ham.csv not found")
+        raise FileNotFoundError("enron_ham.csv or sms_spam.csv not found")
 
     # Load Phishing
     ceas_path = RAW_DIR / "ceas_phishing.csv"
