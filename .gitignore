@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Project Specific
+data/raw/
+data/processed/
+detector/model/
+.env
+
+# OS-specific
+.DS_Store
+Thumbs.db
