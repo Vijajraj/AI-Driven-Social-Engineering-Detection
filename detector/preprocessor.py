@@ -18,7 +18,7 @@ def preprocess(text: str) -> CleanedText:
     Clean raw input text and extract surface-level signal counts.
     Returns both cleaned text (for TF-IDF) and raw counts (for rule engine).
     """
-    text = str(text)
+    text = str(text)[:10000]
 
     url_count = len(re.findall(r"http\S+|www\S+", text, re.IGNORECASE))
     email_count = len(re.findall(r"\S+@\S+", text))

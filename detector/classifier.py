@@ -10,7 +10,7 @@ from scipy.sparse import hstack, csr_matrix
 import shap
 
 from detector.preprocessor import preprocess
-from detector.rule_engine import extract_rule_feature_array, RULE_FEATURE_NAMES
+from detector.rule_engine import extract_rule_features, extract_rule_feature_array, RULE_FEATURE_NAMES
 
 MODEL_DIR = Path("detector/model")
 
@@ -82,7 +82,6 @@ class SocialEngineeringDetector:
 
         proba = self.model.predict_proba(X_dense)[0]
 
-        from detector.rule_engine import extract_rule_features
         rule_signals = extract_rule_features(ct)
 
         # Check if the text has any suspicious features
