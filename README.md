@@ -6,7 +6,7 @@ It integrates a **deterministic rule engine** and a **TF-IDF feature pipeline** 
 
 ---
 
-## 🚀 System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -24,7 +24,7 @@ graph TD
 
 ---
 
-## 📊 Visualizations & Model Performance
+## Visualizations & Model Performance
 
 The detector was trained on a balanced corpus of **17,989 rows** (~3,000 samples per class) consisting of email/SMS data and synthetically generated social engineering attack vectors. It achieved a **Test F1 Macro of 99.14%**.
 
@@ -50,7 +50,7 @@ The top 20 features ranked by their absolute SHAP impact values. It illustrates 
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 social-engineering-detector/
@@ -101,7 +101,7 @@ social-engineering-detector/
 
 ---
 
-## 🛠️ Setup & Execution
+## Setup & Execution
 
 ### 1. Environment Setup
 ```bash
@@ -145,7 +145,7 @@ pytest tests/ -v
 
 ---
 
-## 🌐 API Endpoint Reference
+## API Endpoint Reference
 
 ### 1. Analyze Message (`POST /analyze`)
 Analyzes raw message text, returns ML prediction metrics, SHAP top features, Groq LLM reasoning, and saves the analysis record to Neon PostgreSQL.
@@ -223,7 +223,7 @@ GET /history?limit=20&label=phishing
 
 ---
 
-## 💻 Python Module API Usage
+## Python Module API Usage
 
 You can also import and run the detector module natively in Python applications:
 
