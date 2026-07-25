@@ -45,4 +45,4 @@ async def run_migrations() -> None:
         await conn.execute(CREATE_ANALYSES_TABLE)
         await conn.execute(CREATE_CREATED_AT_INDEX)
         await conn.execute(CREATE_LABEL_INDEX)
-    print("✅ Migrations complete.")
+    print("SUCCESS: Migrations complete.")

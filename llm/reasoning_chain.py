@@ -69,7 +69,7 @@ def _build_signals_summary(result: DetectionResult) -> str:
 
 def build_reasoning_chain():
     llm = ChatGroq(
-        model="llama3-8b-8192",
+        model="llama-3.3-70b-versatile",
         temperature=0.3,
         max_tokens=200,
         api_key=os.getenv("GROQ_API_KEY"),
