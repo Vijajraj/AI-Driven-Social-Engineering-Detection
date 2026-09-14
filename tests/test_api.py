@@ -126,12 +126,12 @@ async def test_rate_limiting_exceeded(client):
         "text": "Hi team, sprint review is tomorrow at 3pm.",
         "source": "email"
     }
-    # 7 allowed requests
-    for i in range(7):
+    # 20 allowed requests per hour
+    for i in range(20):
         resp = await client.post("/analyze", json=payload)
         assert resp.status_code == 200, f"Request {i+1} failed"
     
-    # 8th request should be 429
+    # 21st request should be 429
     resp = await client.post("/analyze", json=payload)
     assert resp.status_code == 429
     detail = resp.json()["detail"]

@@ -127,7 +127,7 @@ window.SEDetectorPopover = {
           <button class="close-btn" id="close-popover">✕</button>
         </div>
         <div class="rate-limit-card">
-          Analysis limit reached (7 checks per 7h). Try again at <strong>${targetTime}</strong>.
+          Analysis limit reached (20 checks per hour). Try again at <strong>${targetTime}</strong>.
         </div>
       `;
     } else if (response.type === 'SUCCESS' && response.data) {

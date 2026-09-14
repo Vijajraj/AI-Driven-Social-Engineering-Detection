@@ -4,9 +4,9 @@ import time
 from collections import defaultdict
 from fastapi import Request, HTTPException
 
-# 7 requests per 7 hours (25,200 seconds)
-WINDOW_SECONDS = 7 * 3600  # 25,200 seconds
-MAX_REQUESTS = 7
+# 20 requests per 1 hour (3,600 seconds)
+WINDOW_SECONDS = 1 * 3600  # 3,600 seconds
+MAX_REQUESTS = 20
 
 # Storage: ip -> list of timestamps
 _ip_request_timestamps: dict[str, list[float]] = defaultdict(list)
@@ -43,7 +43,7 @@ def check_rate_limit(request: Request) -> None:
             status_code=429,
             detail={
                 "error": "rate_limited",
-                "message": "Analysis limit reached (7 checks). Try again later.",
+                "message": "Analysis limit reached (20 checks per hour). Try again later.",
                 "retry_after_seconds": max(1, retry_after_seconds),
             },
         )

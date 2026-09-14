@@ -33,10 +33,10 @@ export default function RateLimitBanner({ retryAfterSeconds }) {
       <AlertTriangle className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
       <div className="flex-1">
         <h4 className="font-semibold text-amber-300 text-sm md:text-base">
-          Analysis Limit Reached (7 checks per 7 hours)
+          Analysis Limit Reached (20 checks per hour)
         </h4>
         <p className="text-xs md:text-sm text-amber-200/80 mt-1">
-          You have reached the free rate limit of 7 message analyses per IP. Please try again at{' '}
+          You have reached the free rate limit of 20 message analyses per hour per IP. Please try again at{' '}
           <span className="font-bold text-white underline">{targetTime}</span>.
         </p>
         <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400 mt-2 bg-amber-950/40 px-2.5 py-1 rounded w-fit border border-amber-500/20">
