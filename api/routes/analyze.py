@@ -1,8 +1,9 @@
 # api/routes/analyze.py
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from api.schemas import AnalyzeRequest, AnalyzeResponse, SHAPFeature
 from api.dependencies import get_detector_instance
+from api.rate_limiter import check_rate_limit
 from llm.reasoning_chain import generate_reasoning
 from db.queries import save_analysis
 
@@ -12,8 +13,10 @@ router = APIRouter()
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_text(
     request: AnalyzeRequest,
+    raw_request: Request,
     detector=Depends(get_detector_instance),
 ):
+    check_rate_limit(raw_request)
     try:
         result = detector.analyze(request.text)
     except ValueError as e:

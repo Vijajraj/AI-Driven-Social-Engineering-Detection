@@ -6,6 +6,16 @@ from httpx import AsyncClient, ASGITransport
 from api.main import app
 
 
+from api.rate_limiter import reset_rate_limit
+
+
+@pytest_asyncio.fixture(autouse=True)
+def reset_limiter_state():
+    reset_rate_limit()
+    yield
+    reset_rate_limit()
+
+
 @pytest_asyncio.fixture
 async def client():
     async with AsyncClient(
@@ -108,3 +118,23 @@ async def test_history_label_filter(client):
     assert response.status_code == 200
     for row in response.json()["analyses"]:
         assert row["label"] == "phishing"
+
+
+@pytest.mark.asyncio
+async def test_rate_limiting_exceeded(client):
+    payload = {
+        "text": "Hi team, sprint review is tomorrow at 3pm.",
+        "source": "email"
+    }
+    # 7 allowed requests
+    for i in range(7):
+        resp = await client.post("/analyze", json=payload)
+        assert resp.status_code == 200, f"Request {i+1} failed"
+    
+    # 8th request should be 429
+    resp = await client.post("/analyze", json=payload)
+    assert resp.status_code == 429
+    detail = resp.json()["detail"]
+    assert detail["error"] == "rate_limited"
+    assert detail["retry_after_seconds"] > 0
+

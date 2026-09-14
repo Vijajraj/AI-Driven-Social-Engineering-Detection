@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Social Engineering Detector",
+  "version": "1.0.0",
+  "description": "Check selected messages for phishing, impersonation, and social engineering manipulation tactics.",
+  "permissions": ["storage", "contextMenus", "activeTab"],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://web.whatsapp.com/*",
+    "https://www.instagram.com/*",
+    "http://localhost:8000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["popover-helper.js", "content-gmail.js"],
+      "css": ["content.css"]
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["popover-helper.js", "content-whatsapp.js"],
+      "css": ["content.css"]
+    },
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["popover-helper.js", "content-instagram.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Social Engineering Detector"
+  }
+}

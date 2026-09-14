@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Engineering Detector</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div className="container">
+    <header className="header">
+      <div className="logo-title">
+        <span className="icon">🛡️</span>
+        <div>
+          <h1>SE Detector</h1>
+          <p className="subtitle">Threat Inspection</p>
+        </div>
+      </div>
+    </header>
+
+    <div id="rate-limit-banner" className="rate-limit-banner hidden">
+      ⚠️ Limit Reached (7 checks per 7h). Try again at <span id="rate-limit-time">--:--</span>.
+    </div>
+
+    <!-- Manual Input Form -->
+    <div className="input-section">
+      <div className="form-row">
+        <label htmlFor="source-select">Source:</label>
+        <select id="source-select">
+          <option value="email">Email</option>
+          <option value="sms">SMS</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="instagram_dm">Instagram DM</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <textarea
+        id="input-text"
+        rows="4"
+        placeholder="Paste suspicious text or message snippet here..."
+      ></textarea>
+
+      <button id="analyze-btn" className="btn-primary">
+        <span>🔍 Analyze Message</span>
+      </button>
+    </div>
+
+    <!-- Result Card -->
+    <div id="result-card" className="result-card hidden">
+      <div className="card-header">
+        <span id="result-label" className="badge">--</span>
+        <span id="result-score" className="score">--/100</span>
+      </div>
+      <div id="result-reasoning" className="reasoning font-italic">
+        "--"
+      </div>
+    </div>
+
+    <!-- Recent Checks Session List -->
+    <div className="recent-section">
+      <h3>Recent Session Checks</h3>
+      <div id="recent-list" className="recent-list">
+        <div className="empty-state">No recent checks in this session.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
