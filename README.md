@@ -1,8 +1,15 @@
-# AI-Driven Social Engineering Detection
+# Social Engineering Detector Security Platform
 
-An explainable, hybrid machine learning and LLM detector designed to classify social engineering attacks (Phishing, Impersonation, Urgency Manipulation, Baiting, and Pretexting).
+An explainable, hybrid machine learning and LLM security platform designed to detect and classify social engineering attacks (**Phishing**, **Impersonation**, **Urgency Manipulation**, **Baiting**, and **Pretexting**).
 
-It integrates a **deterministic rule engine** and a **TF-IDF feature pipeline** with an **XGBoost classifier**, **SHAP (SHapley Additive exPlanations)** feature attribution, a **Groq LLM reasoning layer** (`llama-3.3-70b-versatile`), an **asyncpg database connection pool to Neon PostgreSQL** for persistence, a **React 18 Web Dashboard**, and a **Manifest V3 Chrome Extension** for Gmail, WhatsApp Web, and Instagram.
+It combines a **deterministic rule engine** and a **TF-IDF feature pipeline** with an **XGBoost classifier**, **SHAP (SHapley Additive exPlanations)** feature attribution, a **Groq LLM verification & reasoning guardrail layer**, an **asyncpg database pool to Neon PostgreSQL** for persistence, a **React 18 Web Dashboard**, and a **Manifest V3 Chrome Extension** for Gmail, WhatsApp Web, and Instagram.
+
+---
+
+## Live Deployments
+
+* **Web Dashboard (Vercel)**: [https://ai-driven-social-engineering-detect.vercel.app](https://ai-driven-social-engineering-detect.vercel.app)
+* **Backend API (Render)**: [https://ai-driven-social-engineering-detection.onrender.com](https://ai-driven-social-engineering-detection.onrender.com)
 
 ---
 
@@ -10,18 +17,33 @@ It integrates a **deterministic rule engine** and a **TF-IDF feature pipeline** 
 
 ```mermaid
 graph TD
-    User[User / Selection Target] --> Web[React 18 Web Dashboard localhost:5173]
+    User[User / Selection Target] --> Web[React 18 Web Dashboard]
     User --> Ext[Manifest V3 Chrome Extension Gmail / WhatsApp / Instagram]
-    Web & Ext --> API[FastAPI Backend Endpoint /analyze localhost:8000]
+    Web & Ext --> API[FastAPI Backend Endpoint /analyze]
     API --> RateLimit[IP Rate Limiter 20 req/hour]
     RateLimit --> Pre[Preprocessor & 12 Handcrafted Rules]
     Pre --> ML[TF-IDF Vectorizer & XGBoost Classifier]
     ML --> SHAP[SHAP TreeExplainer Feature Importance]
-    ML & SHAP & Pre --> Groq[Groq LLM Reasoning Layer llama-3.3-70b]
-    Groq --> Explanation[Human-Readable 2-3 Sentence Explanation]
-    ML & SHAP & Explanation --> Neon[Async Database Save to Neon PostgreSQL]
+    ML & SHAP --> Groq[Groq LLM Hybrid Verification & Guardrail Layer]
+    Groq --> Explanation[Human-Readable Explanation & FP Override]
+    Explanation --> Neon[Async Database Save to Neon PostgreSQL]
     Explanation & Neon --> Response[JSON Response / Shadow DOM Popover]
 ```
+
+---
+
+## Key Features
+
+1. **Hybrid ML + LLM Verification Guardrail**:
+   - ML model performs initial fast probabilistic feature scoring.
+   - Groq LLM performs secondary context verification to eliminate false positives on legitimate transactional emails (e.g. account registrations, OTP codes, password resets from verified domains like `account.qualcomm.com` or `github.com`).
+2. **Multi-Channel Inspection**:
+   - Supports text analysis from **Email**, **SMS**, **WhatsApp Message**, **Instagram DM**, **Instagram Comment**, and **Other**.
+3. **Cross-Platform Interface**:
+   - **React 18 Web Dashboard**: Responsive dark mode dashboard with risk gauge arcs, attack type badges, SHAP bar charts, rule signals, and historical logs.
+   - **Manifest V3 Chrome Extension**: Context-aware floating inspection buttons on Gmail, WhatsApp Web, and Instagram with Shadow DOM popovers.
+4. **Production Rate Limiter**:
+   - Enforces an IP-based rolling rate limit of 20 requests per hour with automatic 429 retry-after countdown banners.
 
 ---
 
@@ -65,12 +87,14 @@ social-engineering-detector/
 │       ├── analyze.py              # POST /analyze
 │       └── history.py              # GET /history
 ├── web/                            # React 18 Web Dashboard
+│   ├── public/
+│   │   └── logo.png                # Official Security Platform logo
 │   ├── src/
 │   │   ├── components/             # RiskGauge, ShapChart, AttackTypeBadge, HistoryTable, etc.
 │   │   ├── App.jsx                 # Tabbed dashboard layout (Analyze | History Log)
 │   │   └── main.jsx                # QueryClientProvider & React entrypoint
 │   ├── index.html
-│   ├── tailwind.config.js
+│   ├── tailwind.config.js          # Cyan / Emerald Teal theme config
 │   ├── vite.config.js
 │   └── package.json
 ├── extension/                      # Manifest V3 Chrome Extension
@@ -83,9 +107,9 @@ social-engineering-detector/
 │   ├── content.css                 # floating button styles
 │   ├── popup.html                  # browser action popup UI
 │   ├── popup.js                    # manual text paste inspector
-│   └── popup.css
+│   └── logo.png
 ├── llm/
-│   └── reasoning_chain.py          # ChatGroq llama-3.3-70b explanation chain + fallback
+│   └── reasoning_chain.py          # Groq LLM verification & reasoning chain
 ├── db/
 │   ├── client.py                   # asyncpg database connection pool to Neon
 │   ├── migrations.py               # auto-migrates `analyses` table on startup
@@ -95,28 +119,13 @@ social-engineering-detector/
 │   ├── preprocessor.py             # text cleaning, entity extraction & length limits
 │   ├── rule_engine.py              # extracts 12 handcrafted rule features
 │   ├── classifier.py               # wrapper singleton integrating XGBoost and SHAP
-│   └── model/                      # saved model artifacts (gitignored)
+│   └── model/                      # saved model artifacts
 │       ├── xgb_model.pkl
 │       ├── tfidf_vectorizer.pkl
 │       └── metadata.json
-├── training/                       # Dataprep, EDA & training scripts
-│   ├── data_prep.py
-│   ├── eda.py
-│   ├── features.py
-│   ├── train.py
-│   ├── evaluate.py
-│   └── run_shap.py
 ├── assets/                         # committed visualization plots
-│   ├── class_distribution.png
-│   ├── word_length_dist.png
-│   ├── confusion_matrix.png
-│   └── shap_summary.png
 ├── tests/                          # full automated test suite
-│   ├── test_detector.py            # ML module smoke tests
-│   ├── test_reasoning.py           # Groq LLM chain tests
-│   └── test_api.py                 # Async API endpoint & rate limiting tests
 ├── .env                            # GROQ_API_KEY, DATABASE_URL, CORS_ORIGINS
-├── .env.example                    # committed environment template
 ├── requirements.txt
 └── README.md
 ```
@@ -145,7 +154,7 @@ cd ..
 ```
 
 ### 2. Configure Environment Variables (`.env`)
-Create a `.env` file in the root directory (refer to `.env.example`):
+Create a `.env` file in the root directory:
 ```env
 # Groq API — https://console.groq.com
 GROQ_API_KEY=your_groq_api_key_here
@@ -154,11 +163,10 @@ GROQ_API_KEY=your_groq_api_key_here
 DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/neondb?sslmode=require
 
 # Allowed CORS origins
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://ai-driven-social-engineering-detect.vercel.app
 ```
 
 ### 3. Run FastAPI Backend Server (`localhost:8000`)
-Open Terminal 1:
 ```bash
 $env:PYTHONPATH="."
 uvicorn api.main:app --reload --port 8000
@@ -167,7 +175,6 @@ uvicorn api.main:app --reload --port 8000
 * **Swagger Interactive Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ### 4. Run React Web Dashboard (`localhost:5173`)
-Open Terminal 2:
 ```bash
 cd web
 npm run dev
@@ -203,14 +210,13 @@ When exceeded, the server returns an HTTP `429 Too Many Requests` status:
   }
 }
 ```
-Both the React Web Dashboard and Chrome Extension popovers explicitly parse `retry_after_seconds` and render a live countdown banner.
 
 ---
 
 ## API Endpoint Reference
 
 ### 1. Analyze Message (`POST /analyze`)
-Analyzes raw message text, returns ML prediction metrics, SHAP top features, Groq LLM reasoning, and saves the analysis record to Neon PostgreSQL.
+Analyzes raw message text, returns ML prediction metrics, SHAP top features, Groq LLM verification & reasoning, and saves the analysis record to Neon PostgreSQL.
 
 **Request:**
 ```json
@@ -248,55 +254,13 @@ Content-Type: application/json
     "brand_mention_count": 2.0,
     "is_short": 1.0
   },
-  "llm_reasoning": "This message was flagged because it contains a suspicious URL and uses words like 'verify' that are commonly used in scams to trick people into revealing sensitive information.",
+  "llm_reasoning": "This message uses urgent phishing pressure and suspicious link patterns to attempt credential theft.",
   "analysis_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-### 2. Get Analysis History (`GET /history`)
-Fetches past analysis logs stored in Neon PostgreSQL.
-
-**Request:**
-```
-GET /history?limit=20&label=phishing
-```
-
-**Response:**
-```json
-{
-  "analyses": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "created_at": "2026-07-25T10:11:45.123456+00:00",
-      "source": "sms",
-      "label": "phishing",
-      "confidence": 0.9856,
-      "risk_score": 98,
-      "llm_reasoning": "This message was flagged because it contains a suspicious URL..."
-    }
-  ],
-  "total": 1
-}
-```
-
-### 3. Health & Metadata (`GET /health`, `GET /metadata`)
-* `GET /health`: Returns service operational status and model version.
-* `GET /metadata`: Returns model training metrics, label names, feature counts, and test F1 macro scores.
-
 ---
 
-## Python Module API Usage
+## License
 
-You can also import and run the detector module natively in Python applications:
-
-```python
-from detector import analyze
-
-text = "Hi team, just a reminder that the sprint review is tomorrow at 3pm."
-result = analyze(text)
-
-print("Label:", result.label)            # benign
-print("Confidence:", result.confidence)   # 0.95
-print("Risk Score:", result.risk_score)   # 19 (low risk)
-print("SHAP Features:", result.shap_top_features)
-```
+Designed and developed for Social Engineering Detection Security Platform &copy; 2026.
