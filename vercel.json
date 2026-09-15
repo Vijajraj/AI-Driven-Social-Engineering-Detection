@@ -1,4 +1,8 @@
 {
   "framework": "vite",
-  "rootDirectory": "web"
+  "buildCommand": "cd web && npm run build",
+  "outputDirectory": "web/dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
