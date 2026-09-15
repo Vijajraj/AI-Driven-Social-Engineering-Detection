@@ -1,0 +1,14 @@
+# Prevent Vercel from building Python backend files as serverless functions
+.venv/
+data/
+detector/
+training/
+tests/
+api/
+db/
+llm/
+*.pkl
+*.py
+requirements.txt
+Procfile
+runtime.txt
