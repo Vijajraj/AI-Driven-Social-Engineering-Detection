@@ -134,6 +134,8 @@ export default function App() {
                       <option value="email">Email Body</option>
                       <option value="sms">SMS Text</option>
                       <option value="whatsapp">WhatsApp Message</option>
+                      <option value="instagram_dm">Instagram DM</option>
+                      <option value="instagram_comment">Instagram Comment</option>
                       <option value="other">Other / Unknown</option>
                     </select>
                   </div>
