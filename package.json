@@ -1,0 +1,7 @@
+{
+  "name": "social-engineering-detector-root",
+  "private": true,
+  "scripts": {
+    "build": "cd web && npm run build"
+  }
+}
