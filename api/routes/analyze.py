@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from api.schemas import AnalyzeRequest, AnalyzeResponse, SHAPFeature
 from api.dependencies import get_detector_instance
 from api.rate_limiter import check_rate_limit
-from llm.reasoning_chain import generate_reasoning
+from llm.reasoning_chain import verify_and_analyze
 from db.queries import save_analysis
 
 router = APIRouter()
@@ -24,7 +24,7 @@ async def analyze_text(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Detection failed: {str(e)}")
 
-    reasoning = await generate_reasoning(result, source=request.source)
+    result, reasoning = await verify_and_analyze(request.text, result, source=request.source)
 
     response = AnalyzeResponse(
         label=result.label,
