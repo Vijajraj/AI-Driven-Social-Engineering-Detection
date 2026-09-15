@@ -147,7 +147,7 @@ window.SEDetectorPopover = {
           <span class="score ${scoreClass}">Risk: ${riskScore}/100</span>
         </div>
         <div class="reasoning">"${d.llm_reasoning || 'No explanation available.'}"</div>
-        <div class="footer">Powered by Groq (llama-3.3-70b)</div>
+        <div class="footer">Social Engineering Detector Security Platform</div>
       `;
     } else {
       card.innerHTML = `
