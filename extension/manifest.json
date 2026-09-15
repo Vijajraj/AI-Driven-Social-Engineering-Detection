@@ -8,7 +8,8 @@
     "https://mail.google.com/*",
     "https://web.whatsapp.com/*",
     "https://www.instagram.com/*",
-    "http://localhost:8000/*"
+    "http://localhost:8000/*",
+    "https://ai-driven-social-engineering-detection.onrender.com/*"
   ],
   "background": {
     "service_worker": "background.js"
