@@ -11,7 +11,6 @@ env/
 # Project Specific
 data/raw/
 data/processed/
-detector/model/
 .env
 
 # Node / Web

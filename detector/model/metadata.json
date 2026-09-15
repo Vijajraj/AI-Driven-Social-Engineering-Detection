@@ -1,0 +1,47 @@
+{
+  "trained_at": "2026-06-27T08:50:14.754620",
+  "version": "1.0.0",
+  "xgb_params": {
+    "n_estimators": 300,
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "use_label_encoder": false,
+    "eval_metric": "mlogloss",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "label_map": {
+    "benign": 0,
+    "phishing": 1,
+    "impersonation": 2,
+    "urgency_manipulation": 3,
+    "baiting": 4,
+    "pretexting": 5
+  },
+  "label_names": [
+    "benign",
+    "phishing",
+    "impersonation",
+    "urgency_manipulation",
+    "baiting",
+    "pretexting"
+  ],
+  "test_metrics": {
+    "accuracy": 0.9913841022790439,
+    "f1_macro": 0.9913740262449049,
+    "f1_per_class": {
+      "benign": 0.9743164871582436,
+      "phishing": 0.9739276703111859,
+      "impersonation": 1.0,
+      "urgency_manipulation": 1.0,
+      "baiting": 1.0,
+      "pretexting": 1.0
+    }
+  },
+  "cv_f1_macro_mean": 0.9913740262449049,
+  "cv_f1_macro_std": 0.0,
+  "feature_count": 10012,
+  "training_samples": 14391
+}
