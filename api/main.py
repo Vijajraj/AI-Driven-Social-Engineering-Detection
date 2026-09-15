@@ -42,12 +42,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+default_origins = "http://localhost:5173,http://localhost:3000,https://ai-driven-social-engineering-detect.vercel.app"
+allowed_origins = os.getenv("CORS_ORIGINS", default_origins).split(",")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in allowed_origins if origin.strip()],
-    allow_methods=["GET", "POST"],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

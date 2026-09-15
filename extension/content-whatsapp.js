@@ -2,8 +2,8 @@
 
 let activeFloatingBtn = null;
 
-document.addEventListener('mouseup', (e) => {
-  setTimeout(handleSelectionChange, 200);
+document.addEventListener('mouseup', () => {
+  setTimeout(handleSelectionChange, 250);
 });
 
 function handleSelectionChange() {
@@ -19,13 +19,30 @@ function handleSelectionChange() {
     return;
   }
 
-  // Ensure selection is inside WhatsApp message bubbles / text spans
   const range = selection.getRangeAt(0);
   const containerNode = range.commonAncestorContainer;
   const parentEl = containerNode.nodeType === 1 ? containerNode : containerNode.parentElement;
 
-  const isWhatsAppMessage = parentEl.closest('div.copyable-text, span.selectable-text, div[role="textbox"]');
-  if (!isWhatsAppMessage) {
+  // Broadened WhatsApp Web selectors — covers older and newer DOM structures
+  const isWhatsApp = parentEl.closest([
+    'div.copyable-text',
+    'span.selectable-text',
+    'div[role="textbox"]',
+    'div[data-pre-plain-text]',
+    'div.message-in',
+    'div.message-out',
+    '[data-testid="msg-container"]',
+    '[data-testid="conversation-panel-messages"]',
+    'div._akbu',   // WhatsApp message bubble class (structural, relatively stable)
+    'div._ao3e',
+  ].join(', '));
+
+  // If no matching container, still allow if we're somewhere inside the chat panel
+  const inChatPanel = parentEl.closest(
+    '#main, div[tabindex="-1"][role="application"], div[data-tab]'
+  );
+
+  if (!isWhatsApp && !inChatPanel) {
     return;
   }
 
@@ -42,8 +59,10 @@ function createFloatingButton(rect, text, source) {
   btn.className = 'se-floating-btn';
   btn.innerHTML = '<span>🔍 Check</span>';
 
-  btn.style.top = `${Math.max(10, rect.top - 36)}px`;
-  btn.style.left = `${Math.max(10, rect.left + rect.width / 2 - 40)}px`;
+  const top = Math.max(10, rect.top - 40);
+  const left = Math.max(10, Math.min(window.innerWidth - 130, rect.left + rect.width / 2 - 45));
+  btn.style.top = `${top}px`;
+  btn.style.left = `${left}px`;
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -53,7 +72,7 @@ function createFloatingButton(rect, text, source) {
     btn.innerHTML = '<span>⏳ Inspecting...</span>';
 
     chrome.runtime.sendMessage(
-      { type: 'ANALYZE', text: text, source: source },
+      { type: 'ANALYZE', text, source },
       (response) => {
         removeFloatingButton();
         if (window.SEDetectorPopover) {
@@ -74,7 +93,10 @@ function removeFloatingButton() {
   }
 }
 
-// Listen for background context menu trigger
+// Dismiss on scroll
+window.addEventListener('scroll', removeFloatingButton, { passive: true });
+
+// Background context menu trigger
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'SE_DETECTOR_RESULT') {
     const selection = window.getSelection();

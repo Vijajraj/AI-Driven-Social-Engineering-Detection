@@ -1,6 +1,6 @@
 // extension/background.js
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://ai-driven-social-engineering-detection.onrender.com';
 
 // Register context menu item on install
 chrome.runtime.onInstalled.addListener(() => {

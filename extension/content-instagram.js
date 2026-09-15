@@ -2,25 +2,21 @@
 
 let activeFloatingBtn = null;
 
-// Attach Selection listener
+// Selection listener
 document.addEventListener('mouseup', () => {
-  setTimeout(handleSelectionChange, 200);
+  setTimeout(handleSelectionChange, 250);
 });
 
-// Dismiss floating button on scroll
-window.addEventListener('scroll', () => {
-  removeFloatingButton();
-}, { passive: true });
+// Dismiss on scroll
+window.addEventListener('scroll', removeFloatingButton, { passive: true });
 
-// MutationObserver for Instagram SPA Navigation
+// MutationObserver for Instagram SPA navigation — re-attaches after each navigation
 const observer = new MutationObserver(() => {
-  // Re-verify selection container when DOM mutates
   const selection = window.getSelection();
-  if (selection && !selection.isCollapsed) {
+  if (selection && !selection.isCollapsed && selection.toString().trim().length >= 5) {
     handleSelectionChange();
   }
 });
-
 observer.observe(document.body, { childList: true, subtree: true });
 
 function handleSelectionChange() {
@@ -40,11 +36,30 @@ function handleSelectionChange() {
   const containerNode = range.commonAncestorContainer;
   const parentEl = containerNode.nodeType === 1 ? containerNode : containerNode.parentElement;
 
-  // Instagram selectors: DMs (role="row", role="textbox") vs Comments (ul > div > li, article)
-  const isDM = parentEl.closest('div[role="row"], div[role="textbox"], div[aria-label="Direct"]');
-  const isComment = parentEl.closest('ul > div > li, article, div[role="article"]');
+  // DM thread selectors (stable attributes, not generated class names)
+  const isDM = parentEl.closest([
+    'div[role="row"]',
+    'div[role="textbox"]',
+    'div[aria-label="Direct"]',
+    // Structural DM message container
+    'div[class*="DirectThread"]',
+    'div[data-scope="messages_table"]',
+  ].join(', '));
 
-  if (!isDM && !isComment) {
+  // Post/Reel comment selectors
+  const isComment = parentEl.closest([
+    'ul > div > li',
+    'article',
+    'div[role="article"]',
+    'div[class*="Comment"]',
+    // Stable attribute on comment container
+    'div[aria-label*="comment" i]',
+  ].join(', '));
+
+  // Fallback: any text selected anywhere inside the Instagram SPA shell
+  const inInstagramShell = parentEl.closest('section main, div#react-root, div[id="mount_0_0_"]');
+
+  if (!isDM && !isComment && !inInstagramShell) {
     return;
   }
 
@@ -63,8 +78,10 @@ function createFloatingButton(rect, text, sourceTag) {
   btn.className = 'se-floating-btn';
   btn.innerHTML = '<span>🔍 Check</span>';
 
-  btn.style.top = `${Math.max(10, rect.top - 36)}px`;
-  btn.style.left = `${Math.max(10, rect.left + rect.width / 2 - 40)}px`;
+  const top = Math.max(10, rect.top - 40);
+  const left = Math.max(10, Math.min(window.innerWidth - 130, rect.left + rect.width / 2 - 45));
+  btn.style.top = `${top}px`;
+  btn.style.left = `${left}px`;
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -74,7 +91,7 @@ function createFloatingButton(rect, text, sourceTag) {
     btn.innerHTML = '<span>⏳ Inspecting...</span>';
 
     chrome.runtime.sendMessage(
-      { type: 'ANALYZE', text: text, source: sourceTag },
+      { type: 'ANALYZE', text, source: sourceTag },
       (response) => {
         removeFloatingButton();
         if (window.SEDetectorPopover) {
@@ -95,7 +112,7 @@ function removeFloatingButton() {
   }
 }
 
-// Listen for background context menu trigger
+// Background context menu trigger
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'SE_DETECTOR_RESULT') {
     const selection = window.getSelection();

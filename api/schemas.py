@@ -13,7 +13,10 @@ class AnalyzeRequest(BaseModel):
         max_length=5000,
         description="Raw message text to analyze (email body, SMS, chat message)."
     )
-    source: Literal["email", "sms", "chat", "unknown"] = Field(
+    source: Literal[
+        "email", "sms", "chat", "whatsapp",
+        "instagram_dm", "instagram_comment", "unknown"
+    ] = Field(
         default="unknown",
         description="Channel the message came from. Used for context in LLM reasoning."
     )
