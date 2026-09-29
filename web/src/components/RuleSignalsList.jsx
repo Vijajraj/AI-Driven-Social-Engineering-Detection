@@ -22,13 +22,13 @@ export default function RuleSignalsList({ signals }) {
   const activeSignals = Object.entries(signals).filter(([_, val]) => val > 0);
 
   return (
-    <div className="bg-slate-800/80 p-5 rounded-xl border border-slate-700/60 shadow-lg">
-      <h3 className="text-base font-semibold text-slate-100 mb-3">
-        Engine Rule Signals
-      </h3>
+    <div>
+      <h4 className="text-xs uppercase tracking-wider font-bold text-zinc-400 mb-2.5">
+        Heuristic Rule Triggers
+      </h4>
 
       {activeSignals.length === 0 ? (
-        <p className="text-xs text-slate-400">No rule triggers detected in input text.</p>
+        <p className="text-xs text-zinc-500 italic">No structural threat triggers detected in input text.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {activeSignals.map(([key, val]) => {
@@ -38,10 +38,10 @@ export default function RuleSignalsList({ signals }) {
             return (
               <span
                 key={key}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-700/60 border border-slate-600/60 rounded-lg text-xs text-slate-200"
+                className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-950/90 border border-zinc-800 rounded-lg text-xs text-zinc-300 shadow-sm"
               >
-                <span className="font-medium">{label}:</span>
-                <span className="font-bold text-brand-500">{displayVal}</span>
+                <span className="text-zinc-400">{label}:</span>
+                <span className="font-mono font-bold text-white">{displayVal}</span>
               </span>
             );
           })}

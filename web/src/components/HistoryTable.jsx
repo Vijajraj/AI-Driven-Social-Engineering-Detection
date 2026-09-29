@@ -30,34 +30,34 @@ export default function HistoryTable() {
   };
 
   return (
-    <div className="bg-slate-800/80 rounded-xl border border-slate-700/60 shadow-xl overflow-hidden">
+    <div className="bg-zinc-900/60 rounded-2xl border border-zinc-800/80 shadow-2xl backdrop-blur-xl overflow-hidden">
       {/* Table Header & Controls */}
-      <div className="p-5 border-b border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 border-b border-zinc-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <span>Analysis History Log</span>
           </h2>
-          <p className="text-xs text-slate-400">
-            Recent message scans stored in Neon PostgreSQL.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Historical message scans persisted in PostgreSQL.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Label Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-300">
+            <Filter className="w-3.5 h-3.5 text-zinc-500" />
             <select
               value={labelFilter}
               onChange={(e) => setLabelFilter(e.target.value)}
-              className="bg-transparent text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-zinc-200 outline-none cursor-pointer text-xs"
             >
-              <option value="all">All Attack Types</option>
-              <option value="benign">Benign</option>
-              <option value="phishing">Phishing</option>
-              <option value="impersonation">Impersonation</option>
-              <option value="urgency_manipulation">Urgency Manipulation</option>
-              <option value="baiting">Baiting</option>
-              <option value="pretexting">Pretexting</option>
+              <option value="all" className="bg-zinc-900">All Attack Types</option>
+              <option value="benign" className="bg-zinc-900">Benign</option>
+              <option value="phishing" className="bg-zinc-900">Phishing</option>
+              <option value="impersonation" className="bg-zinc-900">Impersonation</option>
+              <option value="urgency_manipulation" className="bg-zinc-900">Urgency Manipulation</option>
+              <option value="baiting" className="bg-zinc-900">Baiting</option>
+              <option value="pretexting" className="bg-zinc-900">Pretexting</option>
             </select>
           </div>
 
@@ -65,51 +65,51 @@ export default function HistoryTable() {
           <select
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 outline-none cursor-pointer"
+            className="bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-300 outline-none cursor-pointer"
           >
-            <option value={20}>Show 20</option>
-            <option value={50}>Show 50</option>
-            <option value={100}>Show 100</option>
+            <option value={20} className="bg-zinc-900">Show 20</option>
+            <option value={50} className="bg-zinc-900">Show 50</option>
+            <option value={100} className="bg-zinc-900">Show 100</option>
           </select>
 
           {/* Refresh Button */}
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            className="p-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+            className="p-2 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 rounded-xl transition-colors border border-zinc-700"
             title="Refresh History"
           >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Table Content */}
       {isLoading ? (
-        <div className="p-12 text-center text-slate-400 text-sm">
-          Loading analysis history...
+        <div className="p-16 text-center text-zinc-500 text-xs font-mono">
+          Loading analysis history records...
         </div>
       ) : isError ? (
-        <div className="p-12 text-center text-red-400 text-sm">
+        <div className="p-16 text-center text-zinc-400 text-xs font-mono">
           Failed to load history log from backend.
         </div>
       ) : analyses.length === 0 ? (
-        <div className="p-12 text-center text-slate-400 text-sm">
+        <div className="p-16 text-center text-zinc-500 text-xs font-mono">
           No analysis records found for this filter.
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs md:text-sm">
-            <thead className="bg-slate-900/60 text-slate-400 uppercase font-semibold text-xs border-b border-slate-700/60">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-zinc-950/80 text-zinc-400 uppercase font-mono tracking-wider text-[11px] border-b border-zinc-800">
               <tr>
-                <th className="py-3 px-4">Date & Time</th>
-                <th className="py-3 px-4">Source</th>
-                <th className="py-3 px-4">Classification</th>
-                <th className="py-3 px-4">Risk Score</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3 px-5">Date & Time</th>
+                <th className="py-3 px-5">Source</th>
+                <th className="py-3 px-5">Classification</th>
+                <th className="py-3 px-5">Risk Score</th>
+                <th className="py-3 px-5 text-right">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/40">
+            <tbody className="divide-y divide-zinc-800/60 font-sans">
               {analyses.map((row) => {
                 const isExpanded = expandedId === row.id;
                 const formattedDate = new Date(row.created_at).toLocaleString();
@@ -118,32 +118,32 @@ export default function HistoryTable() {
                   <React.Fragment key={row.id}>
                     <tr
                       onClick={() => toggleExpand(row.id)}
-                      className="hover:bg-slate-700/30 cursor-pointer transition-colors"
+                      className="hover:bg-zinc-800/40 cursor-pointer transition-colors"
                     >
-                      <td className="py-3.5 px-4 text-slate-300 whitespace-nowrap">
+                      <td className="py-3.5 px-5 text-zinc-300 font-mono whitespace-nowrap">
                         {formattedDate}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 capitalize font-medium">
+                      <td className="py-3.5 px-5 text-zinc-300 capitalize font-medium">
                         {row.source || 'unknown'}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-5">
                         <AttackTypeBadge label={row.label} confidence={row.confidence} />
                       </td>
-                      <td className="py-3.5 px-4 font-bold">
+                      <td className="py-3.5 px-5 font-mono font-bold">
                         <span
                           className={
                             row.risk_score >= 70
-                              ? 'text-red-400'
+                              ? 'text-white'
                               : row.risk_score >= 40
-                              ? 'text-amber-400'
-                              : 'text-emerald-400'
+                              ? 'text-zinc-300'
+                              : 'text-zinc-500'
                           }
                         >
                           {row.risk_score}/100
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button className="text-slate-400 hover:text-white p-1">
+                      <td className="py-3.5 px-5 text-right">
+                        <button className="text-zinc-400 hover:text-white p-1">
                           {isExpanded ? (
                             <ChevronUp className="w-4 h-4" />
                           ) : (
@@ -155,13 +155,13 @@ export default function HistoryTable() {
 
                     {/* Inline Expanded Row */}
                     {isExpanded && (
-                      <tr className="bg-slate-900/80 border-b border-slate-700/60">
-                        <td colSpan={5} className="p-4 text-xs md:text-sm text-slate-300">
+                      <tr className="bg-zinc-950/90 border-b border-zinc-800">
+                        <td colSpan={5} className="p-5 text-xs text-zinc-300">
                           <div className="space-y-2">
-                            <div className="font-semibold text-brand-400">
-                              LLM Reasoning Explanation:
+                            <div className="font-mono text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                              AI Reasoning Explanation:
                             </div>
-                            <p className="italic bg-slate-800 p-3 rounded-lg border border-slate-700/60">
+                            <p className="italic bg-zinc-900 p-3.5 rounded-xl border border-zinc-800 text-zinc-200">
                               "{row.llm_reasoning || 'No explanation generated.'}"
                             </p>
                           </div>

@@ -35,12 +35,14 @@ window.SEDetectorPopover = {
         justify-content: space-between;
         margin-bottom: 10px;
         padding-bottom: 8px;
-        border-bottom: 1px solid #1e293b;
+        border-bottom: 1px solid #27272a;
       }
       .title {
-        font-size: 13px;
-        font-weight: 700;
-        color: #60a5fa;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #ffffff;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -48,7 +50,7 @@ window.SEDetectorPopover = {
       .close-btn {
         background: none;
         border: none;
-        color: #94a3b8;
+        color: #71717a;
         font-size: 16px;
         cursor: pointer;
         padding: 0 4px;
@@ -67,43 +69,45 @@ window.SEDetectorPopover = {
         border-radius: 12px;
         text-transform: capitalize;
       }
-      .badge-phishing { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
-      .badge-benign { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
-      .badge-impersonation { background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.4); }
-      .badge-urgency_manipulation { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
-      .badge-baiting { background: rgba(234, 179, 8, 0.2); color: #fef08a; border: 1px solid rgba(234, 179, 8, 0.4); }
-      .badge-pretexting { background: rgba(59, 130, 246, 0.2); color: #bfdbfe; border: 1px solid rgba(59, 130, 246, 0.4); }
+      .badge-phishing { background: #ffffff; color: #09090b; border: 1px solid #ffffff; font-weight: 800; }
+      .badge-benign { background: #18181b; color: #a1a1aa; border: 1px solid #27272a; }
+      .badge-impersonation { background: #27272a; color: #f4f4f5; border: 1px solid #3f3f46; }
+      .badge-urgency_manipulation { background: #27272a; color: #f4f4f5; border: 1px solid #3f3f46; }
+      .badge-baiting { background: #27272a; color: #f4f4f5; border: 1px solid #3f3f46; }
+      .badge-pretexting { background: #27272a; color: #f4f4f5; border: 1px solid #3f3f46; }
       
       .score {
         font-size: 12px;
         font-weight: 700;
+        font-family: monospace;
       }
-      .score-high { color: #f87171; }
-      .score-medium { color: #fbbf24; }
-      .score-low { color: #34d399; }
+      .score-high { color: #ffffff; font-weight: 800; }
+      .score-medium { color: #d4d4d8; }
+      .score-low { color: #71717a; }
       
       .reasoning {
         font-size: 12px;
         line-height: 1.5;
-        color: #e2e8f0;
+        color: #d4d4d8;
         font-style: italic;
-        background: #1e293b;
+        background: #18181b;
         padding: 8px 10px;
         border-radius: 8px;
-        border-left: 3px solid #3b82f6;
+        border-left: 2px solid #ffffff;
         margin-bottom: 8px;
       }
       .rate-limit-card {
-        background: rgba(245, 158, 11, 0.15);
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        color: #fef3c7;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        color: #e4e4e7;
         font-size: 12px;
         padding: 10px;
         border-radius: 8px;
       }
       .footer {
-        font-size: 10px;
-        color: #64748b;
+        font-size: 9px;
+        font-family: monospace;
+        color: #52525b;
         text-align: right;
       }
     `;
