@@ -2,8 +2,18 @@
 
 let activeFloatingBtn = null;
 
+// Guard: check if extension context is still valid before using chrome.runtime
+function isContextValid() {
+  try {
+    return !!(chrome && chrome.runtime && chrome.runtime.id);
+  } catch {
+    return false;
+  }
+}
+
 // Selection listener
 document.addEventListener('mouseup', () => {
+  if (!isContextValid()) return;
   setTimeout(handleSelectionChange, 250);
 });
 
@@ -20,6 +30,8 @@ const observer = new MutationObserver(() => {
 observer.observe(document.body, { childList: true, subtree: true });
 
 function handleSelectionChange() {
+  if (!isContextValid()) return;
+
   const selection = window.getSelection();
   if (!selection || selection.isCollapsed) {
     removeFloatingButton();
@@ -41,7 +53,6 @@ function handleSelectionChange() {
     'div[role="row"]',
     'div[role="textbox"]',
     'div[aria-label="Direct"]',
-    // Structural DM message container
     'div[class*="DirectThread"]',
     'div[data-scope="messages_table"]',
   ].join(', '));
@@ -52,7 +63,6 @@ function handleSelectionChange() {
     'article',
     'div[role="article"]',
     'div[class*="Comment"]',
-    // Stable attribute on comment container
     'div[aria-label*="comment" i]',
   ].join(', '));
 
@@ -87,6 +97,14 @@ function createFloatingButton(rect, text, sourceTag) {
     e.stopPropagation();
     e.preventDefault();
 
+    if (!isContextValid()) {
+      removeFloatingButton();
+      if (window.SEDetectorPopover) {
+        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension was updated. Please refresh this page (F5).' }, text);
+      }
+      return;
+    }
+
     btn.classList.add('loading');
     btn.innerHTML = '<span>⏳ Inspecting...</span>';
 
@@ -98,7 +116,7 @@ function createFloatingButton(rect, text, sourceTag) {
           if (chrome.runtime.lastError) {
             console.warn('[SE Detector] sendMessage error:', chrome.runtime.lastError.message);
             if (window.SEDetectorPopover) {
-              window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
+              window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page (F5).' }, text);
             }
             return;
           }
@@ -109,9 +127,9 @@ function createFloatingButton(rect, text, sourceTag) {
       );
     } catch (err) {
       removeFloatingButton();
-      console.warn('[SE Detector] Extension context invalidated. Refresh the page.');
+      console.warn('[SE Detector] Extension context invalidated.');
       if (window.SEDetectorPopover) {
-        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
+        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension was updated. Please refresh this page (F5).' }, text);
       }
     }
   });
@@ -128,19 +146,21 @@ function removeFloatingButton() {
 }
 
 // Background context menu trigger
-try {
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'SE_DETECTOR_RESULT') {
-      const selection = window.getSelection();
-      let rect = { top: 100, left: 100, bottom: 120, width: 200 };
-      if (selection && !selection.isCollapsed) {
-        rect = selection.getRangeAt(0).getBoundingClientRect();
+if (isContextValid()) {
+  try {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.type === 'SE_DETECTOR_RESULT') {
+        const selection = window.getSelection();
+        let rect = { top: 100, left: 100, bottom: 120, width: 200 };
+        if (selection && !selection.isCollapsed) {
+          rect = selection.getRangeAt(0).getBoundingClientRect();
+        }
+        if (window.SEDetectorPopover) {
+          window.SEDetectorPopover.showPopover(rect, message.result, message.text);
+        }
       }
-      if (window.SEDetectorPopover) {
-        window.SEDetectorPopover.showPopover(rect, message.result, message.text);
-      }
-    }
-  });
-} catch (err) {
-  console.warn('[SE Detector] Could not register message listener:', err.message);
+    });
+  } catch (err) {
+    console.warn('[SE Detector] Could not register message listener:', err.message);
+  }
 }

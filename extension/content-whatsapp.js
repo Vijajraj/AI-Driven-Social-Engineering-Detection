@@ -2,11 +2,23 @@
 
 let activeFloatingBtn = null;
 
+// Guard: check if extension context is still valid before using chrome.runtime
+function isContextValid() {
+  try {
+    return !!(chrome && chrome.runtime && chrome.runtime.id);
+  } catch {
+    return false;
+  }
+}
+
 document.addEventListener('mouseup', () => {
+  if (!isContextValid()) return; // silently stop if extension was reloaded
   setTimeout(handleSelectionChange, 250);
 });
 
 function handleSelectionChange() {
+  if (!isContextValid()) return;
+
   const selection = window.getSelection();
   if (!selection || selection.isCollapsed) {
     removeFloatingButton();
@@ -33,7 +45,7 @@ function handleSelectionChange() {
     'div.message-out',
     '[data-testid="msg-container"]',
     '[data-testid="conversation-panel-messages"]',
-    'div._akbu',   // WhatsApp message bubble class (structural, relatively stable)
+    'div._akbu',
     'div._ao3e',
   ].join(', '));
 
@@ -68,6 +80,14 @@ function createFloatingButton(rect, text, source) {
     e.stopPropagation();
     e.preventDefault();
 
+    if (!isContextValid()) {
+      removeFloatingButton();
+      if (window.SEDetectorPopover) {
+        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension was updated. Please refresh this page (F5).' }, text);
+      }
+      return;
+    }
+
     btn.classList.add('loading');
     btn.innerHTML = '<span>⏳ Inspecting...</span>';
 
@@ -79,7 +99,7 @@ function createFloatingButton(rect, text, source) {
           if (chrome.runtime.lastError) {
             console.warn('[SE Detector] sendMessage error:', chrome.runtime.lastError.message);
             if (window.SEDetectorPopover) {
-              window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
+              window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page (F5).' }, text);
             }
             return;
           }
@@ -90,9 +110,9 @@ function createFloatingButton(rect, text, source) {
       );
     } catch (err) {
       removeFloatingButton();
-      console.warn('[SE Detector] Extension context invalidated. Refresh the page.');
+      console.warn('[SE Detector] Extension context invalidated.');
       if (window.SEDetectorPopover) {
-        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
+        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension was updated. Please refresh this page (F5).' }, text);
       }
     }
   });
@@ -112,19 +132,21 @@ function removeFloatingButton() {
 window.addEventListener('scroll', removeFloatingButton, { passive: true });
 
 // Background context menu trigger
-try {
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'SE_DETECTOR_RESULT') {
-      const selection = window.getSelection();
-      let rect = { top: 100, left: 100, bottom: 120, width: 200 };
-      if (selection && !selection.isCollapsed) {
-        rect = selection.getRangeAt(0).getBoundingClientRect();
+if (isContextValid()) {
+  try {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message.type === 'SE_DETECTOR_RESULT') {
+        const selection = window.getSelection();
+        let rect = { top: 100, left: 100, bottom: 120, width: 200 };
+        if (selection && !selection.isCollapsed) {
+          rect = selection.getRangeAt(0).getBoundingClientRect();
+        }
+        if (window.SEDetectorPopover) {
+          window.SEDetectorPopover.showPopover(rect, message.result, message.text);
+        }
       }
-      if (window.SEDetectorPopover) {
-        window.SEDetectorPopover.showPopover(rect, message.result, message.text);
-      }
-    }
-  });
-} catch (err) {
-  console.warn('[SE Detector] Could not register message listener:', err.message);
+    });
+  } catch (err) {
+    console.warn('[SE Detector] Could not register message listener:', err.message);
+  }
 }
