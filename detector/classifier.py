@@ -84,8 +84,14 @@ class SocialEngineeringDetector:
 
         rule_signals = extract_rule_features(ct)
 
-        # Check if the text has any suspicious features
-        is_suspicious = (
+        predicted_idx = int(np.argmax(proba))
+        predicted_label = self.label_names[predicted_idx]
+        confidence = float(proba[predicted_idx])
+
+        # Soft benign override: ONLY if ML confidence is low AND no rule signals fire.
+        # This prevents overriding high-confidence ML detections that rely on text patterns
+        # (e.g., pretexting, emotional manipulation without URLs/links).
+        has_rule_signal = (
             rule_signals["url_count"] > 0 or
             rule_signals["email_count"] > 0 or
             rule_signals["phone_count"] > 0 or
@@ -96,19 +102,11 @@ class SocialEngineeringDetector:
             rule_signals["brand_mention_count"] > 0
         )
 
-        if not is_suspicious:
-            # Override prediction to benign
+        if predicted_label != "benign" and not has_rule_signal and confidence < 0.50:
+            # ML is uncertain AND no rule signals → safe to default to benign
             predicted_label = "benign"
             predicted_idx = self.label_names.index("benign")
-            # Set high confidence for benign and redistribute probabilities
-            confidence = 0.95
-            proba_dict = {name: 0.01 for name in self.label_names}
-            proba_dict["benign"] = 0.95
-            proba = np.array([proba_dict[name] for name in self.label_names])
-        else:
-            predicted_idx = int(np.argmax(proba))
-            predicted_label = self.label_names[predicted_idx]
-            confidence = float(proba[predicted_idx])
+            confidence = max(float(proba[predicted_idx]), 0.60)
 
         # Risk score: benign caps at 20, others scale with confidence
         if predicted_label == "benign":
