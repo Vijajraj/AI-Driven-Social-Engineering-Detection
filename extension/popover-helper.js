@@ -10,7 +10,9 @@ window.SEDetectorPopover = {
     host.id = 'se-detector-popover-host';
     host.style.position = 'fixed';
     host.style.zIndex = '999999';
-    host.style.top = `${Math.max(10, rect.bottom + 8)}px`;
+    // Temporarily place off-screen to measure height
+    host.style.visibility = 'hidden';
+    host.style.top = '0px';
     host.style.left = `${Math.max(10, Math.min(window.innerWidth - 340, rect.left))}px`;
 
     const shadow = host.attachShadow({ mode: 'open' });
@@ -21,6 +23,8 @@ window.SEDetectorPopover = {
       }
       .card {
         width: 320px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
         background: #0f172a;
         color: #f8fafc;
         border: 1px solid #334155;
@@ -168,6 +172,27 @@ window.SEDetectorPopover = {
     shadow.appendChild(card);
     document.body.appendChild(host);
     this.activePopoverHost = host;
+
+    // Measure actual height and decide placement (above or below selection)
+    const cardRect = host.getBoundingClientRect();
+    const popoverHeight = cardRect.height;
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+
+    let topPos;
+    if (spaceBelow >= popoverHeight) {
+      // Enough room below — place below selection
+      topPos = rect.bottom + 8;
+    } else if (spaceAbove >= popoverHeight) {
+      // Enough room above — flip above selection
+      topPos = rect.top - popoverHeight - 8;
+    } else {
+      // Not enough room either way — clamp to bottom of viewport
+      topPos = Math.max(10, window.innerHeight - popoverHeight - 10);
+    }
+
+    host.style.top = `${Math.max(10, topPos)}px`;
+    host.style.visibility = 'visible';
 
     // Attach close listener
     shadow.getElementById('close-popover')?.addEventListener('click', () => {
