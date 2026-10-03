@@ -90,15 +90,30 @@ function createFloatingButton(rect, text, sourceTag) {
     btn.classList.add('loading');
     btn.innerHTML = '<span>⏳ Inspecting...</span>';
 
-    chrome.runtime.sendMessage(
-      { type: 'ANALYZE', text, source: sourceTag },
-      (response) => {
-        removeFloatingButton();
-        if (window.SEDetectorPopover) {
-          window.SEDetectorPopover.showPopover(rect, response || { type: 'ERROR' }, text);
+    try {
+      chrome.runtime.sendMessage(
+        { type: 'ANALYZE', text, source: sourceTag },
+        (response) => {
+          removeFloatingButton();
+          if (chrome.runtime.lastError) {
+            console.warn('[SE Detector] sendMessage error:', chrome.runtime.lastError.message);
+            if (window.SEDetectorPopover) {
+              window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
+            }
+            return;
+          }
+          if (window.SEDetectorPopover) {
+            window.SEDetectorPopover.showPopover(rect, response || { type: 'ERROR' }, text);
+          }
         }
+      );
+    } catch (err) {
+      removeFloatingButton();
+      console.warn('[SE Detector] Extension context invalidated. Refresh the page.');
+      if (window.SEDetectorPopover) {
+        window.SEDetectorPopover.showPopover(rect, { type: 'ERROR', message: 'Extension reloaded. Please refresh the page.' }, text);
       }
-    );
+    }
   });
 
   document.body.appendChild(btn);
@@ -113,15 +128,19 @@ function removeFloatingButton() {
 }
 
 // Background context menu trigger
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'SE_DETECTOR_RESULT') {
-    const selection = window.getSelection();
-    let rect = { top: 100, left: 100, bottom: 120, width: 200 };
-    if (selection && !selection.isCollapsed) {
-      rect = selection.getRangeAt(0).getBoundingClientRect();
+try {
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'SE_DETECTOR_RESULT') {
+      const selection = window.getSelection();
+      let rect = { top: 100, left: 100, bottom: 120, width: 200 };
+      if (selection && !selection.isCollapsed) {
+        rect = selection.getRangeAt(0).getBoundingClientRect();
+      }
+      if (window.SEDetectorPopover) {
+        window.SEDetectorPopover.showPopover(rect, message.result, message.text);
+      }
     }
-    if (window.SEDetectorPopover) {
-      window.SEDetectorPopover.showPopover(rect, message.result, message.text);
-    }
-  }
-});
+  });
+} catch (err) {
+  console.warn('[SE Detector] Could not register message listener:', err.message);
+}
