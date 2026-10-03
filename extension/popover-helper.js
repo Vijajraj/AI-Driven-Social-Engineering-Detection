@@ -40,6 +40,8 @@ window.SEDetectorPopover = {
         margin-bottom: 10px;
         padding-bottom: 8px;
         border-bottom: 1px solid #27272a;
+        cursor: move;
+        user-select: none;
       }
       .title {
         font-size: 12px;
@@ -199,19 +201,67 @@ window.SEDetectorPopover = {
       this.removePopover();
     });
 
-    // Dismiss on click outside
+    // --- Drag-to-move ---
+    const headerEl = shadow.querySelector('.header');
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let hostStartX = 0;
+    let hostStartY = 0;
+
+    if (headerEl) {
+      headerEl.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.close-btn')) return; // don't drag when clicking close
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        hostStartX = host.getBoundingClientRect().left;
+        hostStartY = host.getBoundingClientRect().top;
+        e.preventDefault();
+      });
+    }
+
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      host.style.left = `${hostStartX + dx}px`;
+      host.style.top = `${hostStartY + dy}px`;
+    };
+
+    const onMouseUp = () => {
+      if (isDragging) {
+        isDragging = false;
+      }
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+
+    // Store cleanup refs so removePopover cleans up listeners
+    this._dragCleanup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    // Dismiss on click outside (but not during drag)
     setTimeout(() => {
       const dismissHandler = (e) => {
+        if (isDragging) return;
         if (this.activePopoverHost && !this.activePopoverHost.contains(e.target)) {
           this.removePopover();
           document.removeEventListener('click', dismissHandler);
         }
       };
       document.addEventListener('click', dismissHandler);
-    }, 100);
+    }, 200);
   },
 
   removePopover() {
+    if (this._dragCleanup) {
+      this._dragCleanup();
+      this._dragCleanup = null;
+    }
     if (this.activePopoverHost) {
       this.activePopoverHost.remove();
       this.activePopoverHost = null;
