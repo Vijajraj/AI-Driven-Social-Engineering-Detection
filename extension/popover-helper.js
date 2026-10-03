@@ -2,6 +2,7 @@
 
 window.SEDetectorPopover = {
   activePopoverHost: null,
+  _cleanup: null,
 
   showPopover(rect, response, selectedText) {
     this.removePopover();
@@ -9,8 +10,7 @@ window.SEDetectorPopover = {
     const host = document.createElement('div');
     host.id = 'se-detector-popover-host';
     host.style.position = 'fixed';
-    host.style.zIndex = '999999';
-    // Temporarily place off-screen to measure height
+    host.style.zIndex = '2147483647'; // Max z-index to stay above WhatsApp overlays
     host.style.visibility = 'hidden';
     host.style.top = '0px';
     host.style.left = `${Math.max(10, Math.min(window.innerWidth - 340, rect.left))}px`;
@@ -40,9 +40,10 @@ window.SEDetectorPopover = {
         margin-bottom: 10px;
         padding-bottom: 8px;
         border-bottom: 1px solid #27272a;
-        cursor: move;
+        cursor: grab;
         user-select: none;
       }
+      .header:active { cursor: grabbing; }
       .title {
         font-size: 12px;
         font-weight: 800;
@@ -60,6 +61,7 @@ window.SEDetectorPopover = {
         font-size: 16px;
         cursor: pointer;
         padding: 0 4px;
+        line-height: 1;
       }
       .close-btn:hover { color: #ffffff; }
       .badge-row {
@@ -101,6 +103,8 @@ window.SEDetectorPopover = {
         border-radius: 8px;
         border-left: 2px solid #ffffff;
         margin-bottom: 8px;
+        max-height: 200px;
+        overflow-y: auto;
       }
       .rate-limit-card {
         background: #18181b;
@@ -166,7 +170,7 @@ window.SEDetectorPopover = {
           <button class="close-btn" id="close-popover">✕</button>
         </div>
         <div style="font-size: 12px; color: #f87171;">
-          ${response.message || 'Failed to inspect message. Ensure backend is running at http://localhost:8000.'}
+          ${response.message || 'Failed to inspect message. Ensure backend is running.'}
         </div>
       `;
     }
@@ -175,7 +179,7 @@ window.SEDetectorPopover = {
     document.body.appendChild(host);
     this.activePopoverHost = host;
 
-    // Measure actual height and decide placement (above or below selection)
+    // --- Smart positioning: measure then place above or below ---
     const cardRect = host.getBoundingClientRect();
     const popoverHeight = cardRect.height;
     const spaceBelow = window.innerHeight - rect.bottom - 8;
@@ -183,84 +187,88 @@ window.SEDetectorPopover = {
 
     let topPos;
     if (spaceBelow >= popoverHeight) {
-      // Enough room below — place below selection
       topPos = rect.bottom + 8;
     } else if (spaceAbove >= popoverHeight) {
-      // Enough room above — flip above selection
       topPos = rect.top - popoverHeight - 8;
     } else {
-      // Not enough room either way — clamp to bottom of viewport
       topPos = Math.max(10, window.innerHeight - popoverHeight - 10);
     }
 
     host.style.top = `${Math.max(10, topPos)}px`;
     host.style.visibility = 'visible';
 
-    // Attach close listener
+    // --- Close button ---
     shadow.getElementById('close-popover')?.addEventListener('click', () => {
       this.removePopover();
     });
 
-    // --- Drag-to-move ---
+    // --- Drag-to-move (capture phase on window to bypass WhatsApp/IG event interception) ---
     const headerEl = shadow.querySelector('.header');
     let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let hostStartX = 0;
-    let hostStartY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
 
-    if (headerEl) {
-      headerEl.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.close-btn')) return; // don't drag when clicking close
-        isDragging = true;
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
-        hostStartX = host.getBoundingClientRect().left;
-        hostStartY = host.getBoundingClientRect().top;
-        e.preventDefault();
-      });
-    }
+    const onMouseDown = (e) => {
+      // Only start drag from the header, not from the close button
+      const path = e.composedPath();
+      if (!path.includes(headerEl)) return;
+      // Don't drag if clicking the close button
+      for (const el of path) {
+        if (el.classList && el.classList.contains('close-btn')) return;
+      }
+      isDragging = true;
+      offsetX = e.clientX - host.getBoundingClientRect().left;
+      offsetY = e.clientY - host.getBoundingClientRect().top;
+      e.preventDefault();
+      e.stopPropagation();
+    };
 
     const onMouseMove = (e) => {
       if (!isDragging) return;
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
-      host.style.left = `${hostStartX + dx}px`;
-      host.style.top = `${hostStartY + dy}px`;
+      e.preventDefault();
+      e.stopPropagation();
+      const newLeft = Math.max(0, Math.min(window.innerWidth - 340, e.clientX - offsetX));
+      const newTop = Math.max(0, Math.min(window.innerHeight - 50, e.clientY - offsetY));
+      host.style.left = `${newLeft}px`;
+      host.style.top = `${newTop}px`;
     };
 
-    const onMouseUp = () => {
-      if (isDragging) {
-        isDragging = false;
+    const onMouseUp = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      e.stopPropagation();
+    };
+
+    // Use capture phase (3rd arg = true) so our handlers fire BEFORE WhatsApp's
+    window.addEventListener('mousedown', onMouseDown, true);
+    window.addEventListener('mousemove', onMouseMove, true);
+    window.addEventListener('mouseup', onMouseUp, true);
+
+    // --- Dismiss on click outside (but not during drag) ---
+    const dismissHandler = (e) => {
+      if (isDragging) return;
+      if (this.activePopoverHost && !this.activePopoverHost.contains(e.target)) {
+        this.removePopover();
+        window.removeEventListener('click', dismissHandler, true);
       }
     };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-
-    // Store cleanup refs so removePopover cleans up listeners
-    this._dragCleanup = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    // Dismiss on click outside (but not during drag)
     setTimeout(() => {
-      const dismissHandler = (e) => {
-        if (isDragging) return;
-        if (this.activePopoverHost && !this.activePopoverHost.contains(e.target)) {
-          this.removePopover();
-          document.removeEventListener('click', dismissHandler);
-        }
-      };
-      document.addEventListener('click', dismissHandler);
-    }, 200);
+      window.addEventListener('click', dismissHandler, true);
+    }, 300);
+
+    // Store cleanup function
+    this._cleanup = () => {
+      window.removeEventListener('mousedown', onMouseDown, true);
+      window.removeEventListener('mousemove', onMouseMove, true);
+      window.removeEventListener('mouseup', onMouseUp, true);
+      window.removeEventListener('click', dismissHandler, true);
+    };
   },
 
   removePopover() {
-    if (this._dragCleanup) {
-      this._dragCleanup();
-      this._dragCleanup = null;
+    if (this._cleanup) {
+      this._cleanup();
+      this._cleanup = null;
     }
     if (this.activePopoverHost) {
       this.activePopoverHost.remove();
